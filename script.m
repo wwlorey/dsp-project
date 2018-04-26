@@ -14,15 +14,10 @@ a = a(aBegin + 1:aBegin + len); % Offset truncation of a to get good bear sound
 %a = min(a, a*0 + clip_level);
 %a = max(a, a*0 - clip_level);
 
-%sound(a, Fa);
-%pause(2);
-%sound(b, Fb);
-
 % Add the two signals
 c = a + b;
-length(c)
-%sound(c, Fa);
-%pause(6);
+
+% Create a common sampling frequency F
 F = Fa; % F = Fa = Fb
 
 % Take FFT of signal a and display graph
@@ -65,49 +60,20 @@ xlabel('Frequency (Hz)'); % label the horizontal axis
 ylabel('Power'); % label the vertical axis
 title('Power Spectrum Components for signal c'); % title the graph
 
-% Play the combined signal
-% sound(c,F);
+figure;
 
-% Filter specs:
+% Design our lowpass filter
+fc = 250; % Cutoff frequency
+fs = F/(2*pi); % Sampling ferquency
+n = 4; % Filter order
 
+[c1, c2] = butter(n, fc/(fs/2)); % Generate a lowpass Butterworth filter
+                                 % with parameters defined above
+freqz(c1, c2) % Visualize filter
+                                 
+filter_output = filter(c1, c2, C);
 
-bpFilt = designfilt('lowpassfir', ...       % Response type
-       'FilterOrder',200, ...            % Filter order
-       'PassbandFrequency',200, ...    % Frequency constraints
-       'StopbandFrequency',250, ...
-       'DesignMethod','ls', ...         % Design method
-       'PassbandWeight',1, ...         % Design method options
-       'StopbandWeight',5, ...
-       'SampleRate',F / (2 * pi));               % Sample rate
-     
-fvtool(bpFilt)
-
-%[x, y] = impz(bpFilt);
-%k = fft(x);
-%plot(k);
-%output = conv(x, C);
-
-output = filter(bpFilt, C);
+filter_c = real(ifft(filter_output));
+sound(filter_c, F);
 
 
-% Take FFT of signal c and display graph
-m3 = pow2(nextpow2(len)); % choose the next higher power of 2
-%C = fft(output,m3); % take the fft of signal
-f3 = (0:m3-1)*(F/m3); % set your frequency variable range
-power = abs(output).^2/m3;
-% calculate the power of the signal
-plot(f3(1:floor(m3/2)),power(1:floor(m3/2))) % plots the power
-xlim([0 5000])
-xlabel('Frequency (Hz)'); % label the horizontal axis
-ylabel('Power'); % label the vertical axis
-title('Power Spectrum Components for signal output'); % title the graph
-
-
-
-%[b, a] = butter(1, 200/(F/2), 'low');
-%output = filter(b, a, c);
-d = abs(ifft(output));
-%sound(c, F);
-%pause(8);
-sound(d,F);
-length(d)
